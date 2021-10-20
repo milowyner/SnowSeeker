@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ResortView: View {
+    @Environment(\.horizontalSizeClass) var sizeClass
     let resort: Resort
 
     var body: some View {
@@ -19,10 +20,17 @@ struct ResortView: View {
 
                 Group {
                     HStack {
-                        Spacer()
-                        ResortDetailsView(resort: resort)
-                        SkiDetailsView(resort: resort)
-                        Spacer()
+                        if sizeClass == .compact {
+                            Spacer()
+                            VStack { ResortDetailsView(resort: resort) }
+                            Spacer()
+                            VStack { SkiDetailsView(resort: resort) }
+                            Spacer()
+                        } else {
+                            ResortDetailsView(resort: resort)
+                            Spacer()
+                            SkiDetailsView(resort: resort)
+                        }
                     }
                     .font(.headline)
                     .foregroundColor(.secondary)
@@ -46,6 +54,11 @@ struct ResortView: View {
 
 struct ResortView_Previews: PreviewProvider {
     static var previews: some View {
-        ResortView(resort: Resort.example)
+        if #available(iOS 15.0, *) {
+            ResortView(resort: Resort.example)
+                .previewInterfaceOrientation(.portrait)
+        } else {
+            ResortView(resort: Resort.example)
+        }
     }
 }

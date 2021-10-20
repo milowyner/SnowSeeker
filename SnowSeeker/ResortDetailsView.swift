@@ -26,8 +26,9 @@ struct ResortDetailsView: View {
     }
     
     var body: some View {
-        VStack {
+        Group {
             Text("Size: \(size)")
+            Spacer()
             Text("Price: \(price)")
         }
     }
