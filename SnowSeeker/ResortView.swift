@@ -10,6 +10,8 @@ import SwiftUI
 struct ResortView: View {
     @Environment(\.horizontalSizeClass) var sizeClass
     let resort: Resort
+    
+    @State private var selectedFacility: String?
 
     var body: some View {
         ScrollView {
@@ -42,14 +44,29 @@ struct ResortView: View {
                     Text("Facilities")
                         .font(.headline)
 
-                    Text(ListFormatter.localizedString(byJoining: resort.facilities))
-                        .padding(.vertical)
+                    HStack {
+                        ForEach(resort.facilities) { facility in
+                            Facility.icon(for: facility)
+                                .font(.title)
+                                .onTapGesture {
+                                    selectedFacility = facility
+                                }
+                        }
+                    }
+                    .padding(.vertical)
                 }
                 .padding(.horizontal)
             }
         }
         .navigationBarTitle(Text("\(resort.name), \(resort.country)"), displayMode: .inline)
+        .alert(item: $selectedFacility) { facility in
+            Facility.alert(for: facility)
+        }
     }
+}
+
+extension String: Identifiable {
+    public var id: String { self }
 }
 
 struct ResortView_Previews: PreviewProvider {
