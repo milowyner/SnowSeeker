@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ResortView: View {
     @Environment(\.horizontalSizeClass) var sizeClass
+    @EnvironmentObject var favorites: Favorites
     let resort: Resort
     
     @State private var selectedFacility: Facility?
@@ -56,6 +57,15 @@ struct ResortView: View {
                     .padding(.vertical)
                 }
                 .padding(.horizontal)
+                
+                Button(favorites.contains(resort) ? "Remove from Favorites" : "Add to Favorites") {
+                    if favorites.contains(resort) {
+                        favorites.remove(resort)
+                    } else {
+                        favorites.add(resort)
+                    }
+                }
+                .padding()
             }
         }
         .navigationBarTitle(Text("\(resort.name), \(resort.country)"), displayMode: .inline)
@@ -67,11 +77,7 @@ struct ResortView: View {
 
 struct ResortView_Previews: PreviewProvider {
     static var previews: some View {
-        if #available(iOS 15.0, *) {
-            ResortView(resort: Resort.example)
-                .previewInterfaceOrientation(.portrait)
-        } else {
-            ResortView(resort: Resort.example)
-        }
+        ResortView(resort: Resort.example)
+            .environmentObject(Favorites())
     }
 }
