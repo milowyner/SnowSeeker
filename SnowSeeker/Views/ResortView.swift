@@ -13,6 +13,7 @@ struct ResortView: View {
     let resort: Resort
     
     @State private var selectedFacility: Facility?
+    @State private var showingImageCredit = false
 
     var body: some View {
         ScrollView {
@@ -20,6 +21,40 @@ struct ResortView: View {
                 Image(decorative: resort.id)
                     .resizable()
                     .scaledToFit()
+                    .overlay(
+                        VStack {
+                            Spacer()
+                            HStack {
+                                Spacer()
+                                ZStack {
+                                    Rectangle()
+                                        .fill(.black)
+                                        .opacity(0.3)
+                                    if showingImageCredit || sizeClass == .regular {
+                                        Text("Photo by \(resort.imageCredit)")
+                                            .font(.caption)
+                                            .foregroundColor(.white)
+                                            .padding(8)
+                                            .transition(
+                                                .move(edge: .trailing)
+                                                    .combined(with: .opacity)
+                                            )
+                                    } else {
+                                        Image(systemName: "camera")
+                                            .font(.caption)
+                                            .foregroundColor(.white)
+                                            .padding(8)
+                                    }
+                                }
+                                .fixedSize(horizontal: true, vertical: true)
+                                .onTapGesture {
+                                    withAnimation {
+                                        showingImageCredit.toggle()
+                                    }
+                                }
+                            }
+                        }
+                    )
 
                 Group {
                     HStack {
