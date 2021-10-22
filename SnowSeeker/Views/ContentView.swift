@@ -9,7 +9,56 @@ import SwiftUI
 
 struct ContentView: View {
     @ObservedObject var favorites = Favorites()
-    let resorts: [Resort] = Bundle.main.decode("resorts.json")
+    let originalResorts: [Resort] = Bundle.main.decode("resorts.json")
+    
+    enum SortType: CaseIterable {
+        case `default`, alphabetical, country
+    }
+    enum FilterType: CaseIterable {
+        case country, size, price
+    }
+    
+    @State private var sort = SortType.default
+    @State private var filter: FilterType?
+    
+    var resorts: [Resort] {
+        var resorts = originalResorts
+        
+        switch sort {
+        case .default:
+            break
+        case .alphabetical:
+            resorts.sort(by: { $0.name < $1.name })
+        case .country:
+            resorts.sort(by: { $0.country < $1.country })
+        }
+        
+        return resorts
+    }
+    
+    private func sortButton(_ type: SortType) -> some View {
+        Button(action: { sort = type }, label: {
+            HStack {
+                if sort == type {
+                    Image(systemName: "checkmark")
+                }
+                Text(String(describing: type).capitalized)
+            }
+        })
+    }
+    
+    private func filterButton(_ type: FilterType) -> some View {
+        Button(action: {
+            filter = (filter == type) ? nil : type
+        }, label: {
+            HStack {
+                if filter == type {
+                    Image(systemName: "checkmark")
+                }
+                Text(String(describing: type).capitalized)
+            }
+        })
+    }
 
     var body: some View {
         NavigationView {
@@ -45,6 +94,18 @@ struct ContentView: View {
                 }
             }
             .navigationBarTitle("Resorts")
+            .navigationBarItems(
+                leading: Menu("Sort") {
+                    ForEach(SortType.allCases, id: \.self) { sort in
+                        sortButton(sort)
+                    }
+                },
+                trailing: Menu("Filter") {
+                    ForEach(FilterType.allCases, id: \.self) { filter in
+                        filterButton(filter)
+                    }
+                }
+            )
             
             WelcomeView()
         }
