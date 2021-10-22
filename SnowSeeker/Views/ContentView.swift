@@ -14,16 +14,14 @@ struct ContentView: View {
     enum SortType: CaseIterable {
         case `default`, alphabetical, country
     }
-    enum FilterType: CaseIterable {
-        case country, size, price
-    }
     
     @State private var sort = SortType.default
-    @State private var filter: FilterType?
+    @State private var filter = Resort.Filter()
     
     var resorts: [Resort] {
         var resorts = originalResorts
         
+        // Sort
         switch sort {
         case .default:
             break
@@ -33,33 +31,50 @@ struct ContentView: View {
             resorts.sort(by: { $0.country < $1.country })
         }
         
+        // Filter
+        if let country = filter.selected["Country"]! {
+            resorts = resorts.filter { resort in
+                resort.country == country
+            }
+        }
+        
+        if let price = filter.selected["Price"]! {
+            resorts = resorts.filter { resort in
+                resort.priceString == price
+            }
+        }
+        
+        if let size = filter.selected["Size"]! {
+            resorts = resorts.filter { resort in
+                resort.sizeString == size
+            }
+        }
+        
         return resorts
     }
     
-    private func sortButton(_ type: SortType) -> some View {
-        Button(action: { sort = type }, label: {
-            HStack {
-                if sort == type {
-                    Image(systemName: "checkmark")
-                }
-                Text(String(describing: type).capitalized)
+    private func filterMenu(_ type: String) -> some View {
+        Menu {
+            ForEach(filter.types[type]!, id: \.self) { option in
+                Button(action: {
+                    filter.selected[type] = filter.selected[type] == option ? nil : option
+                }, label: {
+                    HStack {
+                        Text(option)
+                        if filter.selected[type] == option {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                })
             }
-        })
+        } label: {
+            Text(type)
+            if filter.selected[type]! != nil {
+                Image(systemName: "line.3.horizontal.decrease")
+            }
+        }
     }
     
-    private func filterButton(_ type: FilterType) -> some View {
-        Button(action: {
-            filter = (filter == type) ? nil : type
-        }, label: {
-            HStack {
-                if filter == type {
-                    Image(systemName: "checkmark")
-                }
-                Text(String(describing: type).capitalized)
-            }
-        })
-    }
-
     var body: some View {
         NavigationView {
             List(resorts) { resort in
@@ -95,14 +110,37 @@ struct ContentView: View {
             }
             .navigationBarTitle("Resorts")
             .navigationBarItems(
-                leading: Menu("Sort") {
-                    ForEach(SortType.allCases, id: \.self) { sort in
-                        sortButton(sort)
+                leading: Menu(
+                    content: {
+                        Picker("Sort", selection: $sort) {
+                            ForEach(SortType.allCases, id: \.self) {
+                                Text(String(describing: $0).capitalized)
+                            }
+                        }
+                    },
+                    label: {
+                        Text("Sort")
                     }
-                },
-                trailing: Menu("Filter") {
-                    ForEach(FilterType.allCases, id: \.self) { filter in
-                        filterButton(filter)
+                ),
+                
+                trailing: Menu("Filters") {
+                    ForEach(filter.types.keys.sorted(), id: \.self) { type in
+                        filterMenu(type)
+                    }
+                    
+                    if filter.selected.values.contains(where: { $0 != nil }) {
+                        let action = {
+                            for key in filter.selected.keys {
+                                filter.selected[key]! = nil
+                            }
+                        }
+                        let label = { Text("Clear Filters") }
+                        
+                        if #available(iOS 15.0, *) {
+                            Button(role: .destructive, action: action, label: label)
+                        } else {
+                            Button(action: action, label: label)
+                        }
                     }
                 }
             )
